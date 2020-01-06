@@ -25,7 +25,10 @@ import (
 const VendorID = 4057
 
 // ProductID is the USB ProductID assigned to Elgato's Stream Deck (0x0060)
-const ProductID = 96
+var ProductID = []uint16{
+	96, // old streamdeck
+	109, // new streamdeck
+}
 
 // NumButtons is the total amount of Buttons located on the Stream Deck.
 const NumButtons = 15
@@ -118,8 +121,10 @@ func NewStreamDeck(serial ...string) (*StreamDeck, error) {
 	if len(serial) > 1 {
 		return nil, fmt.Errorf("only <= 1 serial numbers must be provided")
 	}
-
-	devices := hid.Enumerate(VendorID, ProductID)
+	var devices []hid.DeviceInfo
+	for _, id := range ProductID {
+		devices = append(devices, hid.Enumerate(VendorID, id)...)
+	}
 
 	if len(devices) == 0 {
 		return nil, fmt.Errorf("no stream deck device found")
